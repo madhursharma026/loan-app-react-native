@@ -23,14 +23,17 @@ const slides = [
 
 const OnBoardingPages = ({ navigation }) => {
 
-  useEffect(async () => {
-    const value = await AsyncStorage.getItem('AUTH_TOKEN');
-    if (value !== null) {
-      navigation.navigate('Home Page')
-    } else {
-      console.log("No Login Detail Found")
+  useEffect(() => {
+    async function fetchLoginData() {
+      const value = await AsyncStorage.getItem('AUTH_TOKEN');
+      if (value !== null) {
+        navigation.navigate('Home Page')
+      } else {
+        console.log("No Login Detail Found")
+      }
     }
-  }, [1])
+    fetchLoginData();
+  }, [1]);
 
   const renderItem = ({ item }) => {
     return (

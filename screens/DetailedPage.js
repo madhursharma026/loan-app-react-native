@@ -6,11 +6,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity } from 'react-native';
 
 const DetailedPage = ({ navigation }) => {
+    const [authToken, setAuthToken] = useState('');
     const [alertMessage, setAlertMessage] = useState('');
     const [addressValue, setAddressValue] = useState('');
     const [alertStatus, setAlertStatus] = useState(false);
     const [fullNameValue, setFullNameValue] = useState('');
-    const [alertAuthToken, setAlertAuthToken] = useState('');
     const [loanAmountValue, setLoanAmountValue] = useState('');
     const [occupationValue, setOccupationValue] = useState('');
     const [userApplyForLoan] = useMutation(USER_APPLY_FOR_LOAN);
@@ -27,14 +27,17 @@ const DetailedPage = ({ navigation }) => {
     const [alertMessagePanCardNumber, setAlertMessagePanCardNumber] = useState(false);
     const [alertMessageAadharCardNumber, setAlertMessageAadharCardNumber] = useState(false);
 
-    useEffect(async () => {
-        const value = await AsyncStorage.getItem('AUTH_TOKEN');
-        if (value !== null) {
-            setAlertAuthToken(value)
-        } else {
-            console.log("No Login Detail Found")
+    useEffect(() => {
+        async function fetchLoginData() {
+            const value = await AsyncStorage.getItem('AUTH_TOKEN');
+            if (value !== null) {
+                setAuthToken(value)
+            } else {
+                console.log("No Login Detail Found")
+            }
         }
-    }, [1])
+        fetchLoginData();
+    }, [1]);
 
     async function submitLoanForm() {
         if (fullNameValue === '') {
@@ -121,11 +124,11 @@ const DetailedPage = ({ navigation }) => {
                         MaritalStatus: maritalStatusValue,
                         PanCardNumber: panCardNumberValue,
                         AadharCardNumber: aadharCardNumberValue,
-                        user_id: "1"
+                        user_id: await AsyncStorage.getItem('AUTH_USER_ID')
                     }
                 }, context: {
                     headers: {
-                        Authorization: `Bearer ${alertAuthToken}`
+                        Authorization: `Bearer ${authToken}`
                     }
                 }
             })

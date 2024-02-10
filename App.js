@@ -14,7 +14,7 @@ const Stack = createStackNavigator();
 
 export default function App() {
   const client = new ApolloClient({
-    uri: 'http://192.168.0.105:3000/graphql',
+    uri: 'http://192.168.0.105:8000/graphql',
     cache: new InMemoryCache(),
     fetchOptions: {
       mode: 'no-cors',

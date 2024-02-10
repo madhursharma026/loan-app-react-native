@@ -1,10 +1,10 @@
 import React from 'react';
 import { Text, StyleSheet, View } from 'react-native';
 
-const HomePage = ({navigation}) => {
+const VideoCallPage = ({ navigation }) => {
     return (
         <View style={styles.container}>
-        <Text style={{fontSize: 20}}>Hii... Working on Video Call Page</Text>
+            <Text style={{ fontSize: 20 }}>Hii... Working on Video Call Page</Text>
         </View>
     );
 };
@@ -16,4 +16,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default HomePage;
+export default VideoCallPage;

@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import React, { useEffect } from 'react';
-import { useMutation } from '@apollo/client';
+import { useLazyQuery, useMutation } from '@apollo/client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { FIRST_STEP_USER_LOGIN, USER_LOGIN_VERIFICATION } from '../graphqlAPI/mutation';
 import { View, Text, TouchableOpacity, Image, TextInput, StyleSheet, } from 'react-native';
+import { FETCH_USER_DETAILS } from '../graphqlAPI/query';
 
 export default function Authentication({ navigation }) {
   const [OTPCodeValue, setOTPCodeValue] = useState(false);
+  const [fetchUserDetails] = useLazyQuery(FETCH_USER_DETAILS);
   const [phoneNumberValue, setPhoneNumberValue] = useState(false);
   const [firstStepUserLogin] = useMutation(FIRST_STEP_USER_LOGIN);
   const [showOTPInputField, setShowOTPInputField] = useState(false);
@@ -15,14 +17,17 @@ export default function Authentication({ navigation }) {
   const [errorMessageOTPCode, setErrorMessageOTPCode] = useState(false);
   const [errorMessagePhoneNumber, setErrorMessagePhoneNumber] = useState(false);
 
-  useEffect(async () => {
-    const value = await AsyncStorage.getItem('AUTH_TOKEN');
-    if (value !== null) {
-      navigation.navigate('Home Page')
-    } else {
-      console.log("No Login Detail Found")
+  useEffect(() => {
+    async function fetchLoginData() {
+      const value = await AsyncStorage.getItem('AUTH_TOKEN');
+      if (value !== null) {
+        navigation.navigate('Home Page')
+      } else {
+        console.log("No Login Detail Found")
+      }
     }
-  }, [1])
+    fetchLoginData();
+  }, [1]);
 
   async function generateOTP() {
     if (phoneNumberValue.length === 10) {
@@ -55,13 +60,28 @@ export default function Authentication({ navigation }) {
         }
       }
     })
-      .then(async (res) => {
+      .then(async (res1) => {
         alert('Login Successfully!')
-        console.log("jwtToken" + res.data.userLoginVerification.jwtToken)
-        await AsyncStorage.setItem('AUTH_TOKEN', res.data.userLoginVerification.jwtToken);
-        const value = await AsyncStorage.getItem('AUTH_TOKEN');
-        console.log("value" + value)
-        navigation.navigate('Home Page')
+        await AsyncStorage.setItem('AUTH_TOKEN', res1.data.userLoginVerification.jwtToken);
+        const AUTH_TOKEN = await AsyncStorage.getItem('AUTH_TOKEN');
+        await fetchUserDetails({
+          variables: {
+            mobileNumber: phoneNumberValue
+          }, context: {
+            headers: {
+              Authorization: `Bearer ${res1.data.userLoginVerification.jwtToken}`
+            }
+          }
+        })
+          .then(async (res2) => {
+            await AsyncStorage.setItem('AUTH_USER_ID', String(res2.data.user.id));
+            const AUTH_USER_ID = await AsyncStorage.getItem('AUTH_USER_ID');
+            navigation.navigate('Home Page')
+          })
+          .catch(error => {
+            setErrorMessageOTPCode(error?.message)
+          });
+        // navigation.navigate('Home Page')
       })
       .catch(error => {
         setErrorMessageOTPCode(error?.message)
